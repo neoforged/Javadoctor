@@ -22,6 +22,6 @@ public class CombiningJavadocProvider implements JavadocProvider {
                 javadoc = javadoc.merge(provider.get(clazz));
             }
         }
-        return null;
+        return javadoc;
     }
 }
