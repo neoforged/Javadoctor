@@ -118,7 +118,7 @@ public class SymbolResolverWithRecordSupport implements SymbolResolver {
                 return new JavaParserInterfaceDeclaration(cNode, typeSolver);
             }
             return new JavaParserClassDeclaration(cNode, typeSolver);
-        } else if (node instanceof RecordDeclaration) {
+        } else if (node instanceof RecordDeclaration) { // Javadoctor modification: allow resolving records
             return new RecordClassDeclaration((RecordDeclaration) node, typeSolver);
         }
         if (node instanceof TypeParameter) {
@@ -136,6 +136,7 @@ public class SymbolResolverWithRecordSupport implements SymbolResolver {
         throw new IllegalArgumentException("Cannot get a reference type declaration from " + node.getClass().getCanonicalName());
     }
 
+    // Javadoctor modification: add a declaration class for records, similar to JavaParserClassDeclaration
     public static final class RecordClassDeclaration extends AbstractClassDeclaration
             implements MethodUsageResolutionCapability, SymbolResolutionCapability {
 

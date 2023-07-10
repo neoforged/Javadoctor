@@ -1,0 +1,20 @@
+plugins {
+    id 'java-library'
+}
+
+archivesBaseName = 'gson-io'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api project(':spec')
+    api 'com.google.code.gson:gson:2.10.1'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
+}

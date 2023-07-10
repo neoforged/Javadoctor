@@ -1,2 +1,13 @@
-rootProject.name = 'JDocInjection'
-include ':spec', ':collector', ':injector'
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven { url = 'https://maven.neoforged.net/' }
+    }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.5.0'
+}
+
+rootProject.name = 'Javadoctor'
+include ':spec', ':collector', ':injector', ':gson-io'

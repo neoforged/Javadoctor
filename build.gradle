@@ -1,8 +1,20 @@
+plugins {
+    id 'net.minecraftforge.gradleutils' version '[2.0.13,)'
+}
+
+changelog {
+    fromTag '1.0'
+}
+
+allprojects {
+    println("${it.name} version: ${version = gradleutils.tagOffsetVersion}")
+}
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
 
-    group = 'net.minecraftforge.jdoc'
+    group = 'net.neoforged.javadoctor'
     java {
         withSourcesJar()
     }
@@ -11,7 +23,13 @@ subprojects {
         publications {
             mavenJava(MavenPublication) {
                 from components.java
+                if (project.plugins.hasPlugin('com.github.johnrengelman.shadow')) {
+                    artifact project.tasks.shadowJar
+                }
             }
+        }
+        repositories {
+            maven gradleutils.getPublishingForgeMaven()
         }
     }
 }

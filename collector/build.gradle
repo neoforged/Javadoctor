@@ -1,3 +1,7 @@
+plugins {
+    id 'java-library'
+}
+
 archivesBaseName = 'collector'
 
 java {
@@ -21,13 +25,15 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.google.code.gson:gson:2.10.1'
-    implementation project(':spec')
+    api 'com.google.code.gson:gson:2.10.1'
+    api project(':spec')
+    api project(':gson-io')
     compileOnly 'org.jetbrains:annotations:24.0.1'
 
     testAnnotationProcessor sourceSets.main.output
     testAnnotationProcessor 'com.google.code.gson:gson:2.10.1'
     testAnnotationProcessor project(':spec')
+    testAnnotationProcessor project(':gson-io')
     testCompileOnly 'org.spongepowered:mixin:0.8.5'
 }
 
