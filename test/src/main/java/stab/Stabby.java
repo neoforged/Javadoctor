@@ -54,7 +54,11 @@ public class Stabby {
         }
     }
 
-    private void hi(String[] bo) {}
+    /**
+     * A very funny method that does no stabbing.
+     * @param things the thing to do no stabbing on
+     */
+    private void hi(String[] things) {}
 
     /**
      * Writes the {@linkplain #storage stab counter}.

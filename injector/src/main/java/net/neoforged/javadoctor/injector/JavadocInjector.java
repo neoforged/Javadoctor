@@ -45,7 +45,7 @@ public class JavadocInjector {
         this.javadocProvider = javadocProvider;
     }
 
-    public JavadocInjector(String version, JavadocProvider javadocProvider, List<Path> classpath) throws IOException {
+    public JavadocInjector(int version, JavadocProvider javadocProvider, Iterable<Path> classpath) throws IOException {
         this(new JavaParser(new ParserConfiguration()
                 .setLanguageLevel(ParserConfiguration.LanguageLevel.valueOf("JAVA_" + version))
                 .setSymbolResolver(new SymbolResolverWithRecordSupport(
@@ -53,7 +53,7 @@ public class JavadocInjector {
                 ))), javadocProvider);
     }
 
-    private static TypeSolver solver(List<Path> paths) throws IOException {
+    private static TypeSolver solver(Iterable<Path> paths) throws IOException {
         final TypeSolverBuilder builder = new TypeSolverBuilder()
                 .withCurrentJRE();
         for (final Path path : paths) {

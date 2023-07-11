@@ -10,4 +10,4 @@ plugins {
 }
 
 rootProject.name = 'Javadoctor'
-include ':spec', ':collector', ':injector', ':gson-io'
+include ':spec', ':collector', ':injector', ':gson-io', ':test'

@@ -1,0 +1,9 @@
+tsrg2 left right
+stab/Stabby stab/Stabby
+	CONSTANT f_17394
+	INSTANCE f_a_nice_instance
+	read ()I m_dont_look_here
+	hi ([Ljava/lang/String;)V m_hi_remapped
+		0 things p_1
+stab/Stabby$StabState stab/Stabby$BetterStabbingState
+	AIMED AIMED_or_is_it

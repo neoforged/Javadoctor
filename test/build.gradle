@@ -1,0 +1,145 @@
+plugins {
+    id 'java'
+}
+evaluationDependsOn(':injector')
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+repositories {
+    maven {
+        url 'https://repo.spongepowered.org/repository/maven-public/'
+        content {
+            includeGroup('org.spongepowered')
+        }
+    }
+    mavenLocal {
+//        url 'https://maven.neoforged.net'
+        content {
+            includeGroup('net.neoforged')
+        }
+    }
+}
+
+configurations {
+    decompiler
+    injector
+    fart {
+        transitive = false
+    }
+}
+
+dependencies {
+    compileOnly 'org.spongepowered:mixin:0.8.5'
+    annotationProcessor project(':collector')
+
+    decompiler 'org.vineflower:vineflower:1.9.1'
+    injector project(':injector')
+    fart 'net.neoforged:AutoRenamingTool:1.0.4:all'
+}
+
+tasks.named('compileJava', JavaCompile).configure {
+    options.compilerArgs.add('-AcollectionPackages=hello,stab')
+}
+
+tasks.register('obfJar', ObfuscateTask) {
+    group = 'build'
+    input.set(tasks.jar.archiveFile)
+    mappingsIn.from(file('src/main/resources/mappings.tsrg'))
+    doFirst {
+        file('src/main/resources/mappings.tsrg').text = file('src/main/resources/mappings.tsrg').text.replace('    ', '\t')
+    }
+}
+
+tasks.register('decompile', DecompileTask) {
+    group = 'build'
+    input.set(tasks.obfJar.output)
+}
+
+tasks.register('applyDocs', InjectDocsTask) {
+    group = 'test'
+    input.set(tasks.named('decompile', DecompileTask).flatMap { it.output })
+    classpath.from(project.configurations.injector)
+}
+
+abstract class DecompileTask extends DefaultTask {
+    @InputFile
+    abstract RegularFileProperty getInput()
+
+    @OutputFile
+    abstract RegularFileProperty getOutput()
+
+    DecompileTask() {
+        output.convention(project.layout.file(project.provider { project.file("${project.buildDir}/${name}/output.jar") }))
+    }
+
+    @TaskAction
+    void run() {
+        output.get().asFile.delete()
+        project.javaexec { JavaExecSpec spec ->
+            spec.args(input.get().asFile, output.get().asFile)
+            spec.jvmArgs('-Xmx256M')
+            spec.classpath(project.configurations.decompiler)
+            spec.mainClass.set('org.jetbrains.java.decompiler.main.decompiler.ConsoleDecompiler')
+        }
+    }
+}
+
+abstract class ObfuscateTask extends DefaultTask {
+    @InputFile
+    abstract RegularFileProperty getInput()
+
+    @OutputFile
+    abstract RegularFileProperty getOutput()
+
+    @InputFiles
+    abstract ConfigurableFileCollection getMappingsIn()
+
+    ObfuscateTask() {
+        output.convention(project.layout.file(project.provider { project.file("${project.buildDir}/${name}/output.jar") }))
+    }
+
+    @TaskAction
+    void run() {
+        output.get().asFile.delete()
+        project.javaexec { JavaExecSpec spec ->
+            spec.args('--input', input.get().asFile, '--output', output.get().asFile, '--disable-abstract-param')
+            mappingsIn.each {
+                spec.args('--map', it)
+            }
+            spec.jvmArgs('-Xmx256M')
+            spec.classpath(project.configurations.fart)
+            spec.mainClass.set('net.minecraftforge.fart.Main')
+        }
+    }
+}
+
+abstract class InjectDocsTask extends DefaultTask {
+    @InputFile
+    abstract RegularFileProperty getInput()
+
+    @OutputFile
+    abstract RegularFileProperty getOutput()
+
+    @InputFiles
+    abstract ConfigurableFileCollection getClasspath()
+
+    InjectDocsTask() {
+        output.convention(project.layout.file(project.provider { project.file("${project.buildDir}/${name}/output.jar") }))
+    }
+
+    @TaskAction
+    void run() {
+        final cp = getClasspath()
+        output.get().asFile.delete()
+        project.javaexec { JavaExecSpec spec ->
+            spec.args('--input', input.get().asFile, '--output', output.get().asFile, '--java-version', 17)
+            spec.jvmArgs('-Xmx256M')
+            spec.classpath(cp)
+            spec.mainClass.set('net.neoforged.javadoctor.injector.Main')
+        }
+    }
+}

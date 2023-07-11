@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id 'java-library'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
@@ -5,26 +7,31 @@ plugins {
 
 archivesBaseName = 'injector'
 
-repositories {
-    mavenCentral()
-}
-
 configurations {
     dependency
     api.extendsFrom(dependency)
+
+    allJar
 }
 
 dependencies {
     dependency project(':spec')
+    dependency project(':gson-io')
     dependency 'com.github.javaparser:javaparser-symbol-solver-core:3.25.3'
+    dependency 'net.sf.jopt-simple:jopt-simple:6.0-alpha-3'
 
     dependency 'org.ow2.asm:asm:9.5'
     dependency 'org.ow2.asm:asm-tree:9.5'
     dependency 'org.ow2.asm:asm-util:9.5'
     dependency 'org.ow2.asm:asm-commons:9.5'
+
+    allJar files(tasks.shadowJar.archiveFile)
 }
 
-shadowJar {
+tasks.named('shadowJar', ShadowJar) {
+    // JOPT doesn't like being relocated
+    //    enableRelocation = true
+    //    relocationPrefix = 'net.neoforged.javadoctor.injector.relocate'
     configurations = [project.configurations.dependency]
 }
 

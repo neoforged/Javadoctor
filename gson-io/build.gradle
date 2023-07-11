@@ -4,10 +4,6 @@ plugins {
 
 archivesBaseName = 'gson-io'
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     api project(':spec')
     api 'com.google.code.gson:gson:2.10.1'
