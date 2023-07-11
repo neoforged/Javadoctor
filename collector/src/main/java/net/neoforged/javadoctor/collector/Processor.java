@@ -28,7 +28,7 @@ public class Processor extends AbstractProcessor {
         final String[] toCollect = processingEnv.getOptions().get("collectionPackages").split(",");
         final Predicate<String> isCollectible = s -> {
             for (final String c : toCollect) {
-                if (s.startsWith(c)) {
+                if (s.startsWith(c + ".") || s.equals(c)) {
                     return true;
                 }
             }
