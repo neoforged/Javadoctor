@@ -168,6 +168,10 @@ public class JavadocCollector {
             public void onTag(String tag, String line) {
                 if (tag.equals("param")) {
                     final String[] splitWithParam = line.split(" ", 2);
+                    if (splitWithParam.length != 2) {
+                        messager.printMessage(Diagnostic.Kind.WARNING, "Found incomplete param tag!", collectingElement);
+                        return;
+                    }
                     final String paramName = splitWithParam[0];
                     final Matcher generic = GENERIC.matcher(paramName);
                     if (generic.find()) {
