@@ -209,7 +209,8 @@ public class JavadocCollector {
             }
         });
         final String finalDoc = String.join("\n", docs).trim();
-        return new JavadocEntry(finalDoc.isBlank() ? null : finalDoc, tags.isEmpty() ? null : tags, params.getKey(), params.getValue());
+        final JavadocEntry entry = new JavadocEntry(finalDoc.isBlank() ? null : finalDoc, tags.isEmpty() ? null : tags, params.getKey(), params.getValue());
+        return entry.isEmpty() ? null : entry;
     }
 
     private <T> T walk(String comment, JDocWalker<T> walker) {

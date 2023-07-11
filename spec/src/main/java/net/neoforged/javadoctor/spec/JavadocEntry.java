@@ -51,6 +51,10 @@ public final class JavadocEntry {
         );
     }
 
+    public boolean isEmpty() {
+        return doc == null && (tags == null || tags.isEmpty()) && parameters == null && typeParameters == null;
+    }
+
     @Nullable
     private static String[] mergeParams(@Nullable String[] a, @Nullable String[] b) {
         if (a == null) {
