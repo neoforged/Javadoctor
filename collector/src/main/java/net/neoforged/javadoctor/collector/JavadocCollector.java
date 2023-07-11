@@ -111,7 +111,7 @@ public class JavadocCollector {
 
     public void collect(TypeElement typeElement) {
         final ClassJavadoc classJavadoc = buildClass(typeElement);
-        if (classJavadoc.clazz() != null || classJavadoc.methods() != null || classJavadoc.fields() != null || !classJavadoc.innerClasses().isEmpty()) {
+        if (!classJavadoc.isEmpty()) {
             javadocs.put(typeElement.getQualifiedName().toString(), classJavadoc);
         }
     }
@@ -136,7 +136,9 @@ public class JavadocCollector {
                         createJavadoc(element, imports, null, null)
                 );
             } else if (element instanceof TypeElement typeElement) {
-                innerClasses.put(typeElement.getSimpleName().toString(), buildClass(typeElement));
+                final ClassJavadoc innerDoc = buildClass(typeElement);
+                if (!innerDoc.isEmpty())
+                    innerClasses.put(typeElement.getSimpleName().toString(), innerDoc);
             }
         });
 

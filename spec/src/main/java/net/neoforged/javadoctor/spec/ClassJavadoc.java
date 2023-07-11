@@ -57,6 +57,10 @@ public final class ClassJavadoc {
         );
     }
 
+    public boolean isEmpty() {
+        return clazz == null && methods == null && fields == null && innerClasses.isEmpty();
+    }
+
     @SafeVarargs
     static <K, V> Map<K, V> mergeMaps(BiFunction<V, V, V> valueMerger, Map<K, V>... maps) {
         if (maps.length == 1) {
