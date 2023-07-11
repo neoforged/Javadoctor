@@ -52,7 +52,7 @@ public class Processor extends AbstractProcessor {
                     .forEach(type -> collector.collectMixin(type, types));
         }
 
-        try (final Writer writer = processingEnv.getFiler().createResource(StandardLocation.SOURCE_OUTPUT, "", "javadocs.json")
+        try (final Writer writer = processingEnv.getFiler().createResource(StandardLocation.SOURCE_OUTPUT, "", "javadoctor.json")
                 .openWriter()) {
             GsonJDocIO.GSON.toJson(GsonJDocIO.write(GsonJDocIO.GSON, collector.javadocs), writer);
         } catch (Exception exception) {
