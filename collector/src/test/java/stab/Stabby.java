@@ -53,13 +53,14 @@ public class Stabby {
             LOCK.readLock().unlock();
         }
     }
-    
+
     private void hi(String[] bo) {}
 
     /**
      * Writes the {@linkplain #storage stab counter}.
      *
-     * @param value stabb.
+     * @param value stabb. lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem
+     *              ipsumlorem ipsum lorem ipsumlorem ipsum
      * @see #read() well-educated (reading) counterpart
      */
     private void write(int value) {
@@ -69,6 +70,14 @@ public class Stabby {
         } finally {
             LOCK.writeLock().unlock();
         }
+    }
+
+    /**
+     * @deprecated Don't make the mistake. Use {@link #write(int)} instead.
+     */
+    @Deprecated
+    private void veryDeprecatedMethod() {
+
     }
 
     /**

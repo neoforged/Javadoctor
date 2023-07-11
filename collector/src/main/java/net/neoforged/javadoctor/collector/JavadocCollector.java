@@ -198,6 +198,7 @@ public class JavadocCollector {
                         }
                     }
                 } else {
+                    if (tag.equals("deprecated") && line.isBlank()) return; // FF loves to add emtpy @deprecated tags
                     tags.computeIfAbsent(tag, k -> new ArrayList<>()).add(line);
                 }
             }
@@ -207,7 +208,8 @@ public class JavadocCollector {
                 return new AbstractMap.SimpleEntry<>(parameters, typeParameters);
             }
         });
-        return new JavadocEntry(String.join("\n", docs).trim(), tags, params.getKey(), params.getValue());
+        final String finalDoc = String.join("\n", docs).trim();
+        return new JavadocEntry(finalDoc.isBlank() ? null : finalDoc, tags.isEmpty() ? null : tags, params.getKey(), params.getValue());
     }
 
     private <T> T walk(String comment, JDocWalker<T> walker) {
@@ -216,14 +218,12 @@ public class JavadocCollector {
         final String[] lines = comment.split("\n");
         if (lines.length == 0) return walker.finish();
         int indentAmount = 0;
-        if (!lines[0].trim().startsWith("@")) {
-            String line = lines[0];
-            for (int i = 0; i < line.length(); i++) {
-                if (line.charAt(i) == ' ') {
-                    indentAmount++;
-                } else {
-                    break;
-                }
+        final String initialLine = lines[0];
+        for (int i = 0; i < initialLine.length(); i++) {
+            if (initialLine.charAt(i) == ' ') {
+                indentAmount++;
+            } else {
+                break;
             }
         }
 
@@ -236,7 +236,7 @@ public class JavadocCollector {
                 final String[] split = line.substring(1).split(" ", 2);
                 if (split.length == 2) {
                     if (tagName != null) {
-                        walker.onTag(tagName, current.toString());
+                        walker.onTag(tagName, current.toString().trim());
                     }
                     tagName = split[0];
                     current = new StringBuilder().append(split[1]);
@@ -248,7 +248,7 @@ public class JavadocCollector {
                 current.append(line.trim());
             } else {
                 if (tagName != null) {
-                    walker.onTag(tagName, current.toString());
+                    walker.onTag(tagName, current.toString().trim());
                     current = null;
                     tagName = null;
                 }
@@ -257,7 +257,7 @@ public class JavadocCollector {
         }
 
         if (tagName != null) {
-            walker.onTag(tagName, current.toString());
+            walker.onTag(tagName, current.toString().trim());
         }
         return walker.finish();
     }

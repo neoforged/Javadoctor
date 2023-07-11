@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public class DocFQNExpander {
-    public static final Pattern PATTERN = Pattern.compile("@(?<tag>link|linkplain|see|value)(?<space>\\s+)(?<owner>[\\w$.]*)(?:#(?<member>[\\w%]+)?(\\((?<desc>[\\w$., \\[\\]]+)?\\))?)?");
+    public static final Pattern PATTERN = Pattern.compile("@(?<tag>link|linkplain|see|value)(?<space>\\s+)(?<owner>[\\w$.]*)(?:#(?<member>[\\w%]+)?(?<descFull>\\((?<desc>[\\w$., \\[\\]]+)?\\))?)?");
     public static String expand(TypeElement declaringClass, String doc, JavadocCollector.Imports imports) {
         final TypeElement topLevel = Hierarchy.getTopLevel(declaringClass);
         final Supplier<Map<String, TypeElement>> members = JavadocCollector.memoized(() -> {
@@ -29,12 +29,15 @@ public class DocFQNExpander {
                     .append('@').append(result.group(1)).append(result.group(2));
             final String owner = imports.getQualified(result.group(3));
             final String member = result.group(4);
-            final String desc = result.group(6);
+            final String descFull = result.group(5);
+            final boolean hasDesc = descFull != null && !descFull.isBlank();
+            String desc = result.group(6);
+            if (hasDesc && desc == null) desc = "";
             if (owner == null || owner.isBlank()) {
                 if (member == null) {
                     return result.group(0);
                 }
-                final TypeElement actualOwner = members.get().get(desc == null ? "#" + member : member); // this isn't flawless, it will find the wrong one when there's a lot of nesting of classes with the same member names
+                final TypeElement actualOwner = members.get().get(hasDesc ? member : "#" + member); // this isn't flawless, it will find the wrong one when there's a lot of nesting of classes with the same member names
                 if (actualOwner != null) {
                     text.append(actualOwner.getQualifiedName());
                 }
@@ -45,7 +48,7 @@ public class DocFQNExpander {
                 return text.toString();
             }
             text.append('#').append(member);
-            if (desc == null) {
+            if (!hasDesc) {
                 return text.toString();
             }
             return text.append('(').append(String.join(", ", getParameterTypes(desc, imports))).append(')').toString();
