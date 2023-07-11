@@ -43,6 +43,7 @@ public class Stabby {
      *
      * @return the amount of stabs
      * @see #write(int) writing counterpart
+     * @see #hi(String[])
      */
     public int read() {
         try {
@@ -52,6 +53,8 @@ public class Stabby {
             LOCK.readLock().unlock();
         }
     }
+    
+    private void hi(String[] bo) {}
 
     /**
      * Writes the {@linkplain #storage stab counter}.

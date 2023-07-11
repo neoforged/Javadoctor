@@ -317,7 +317,13 @@ public class JavadocCollector {
                         return child.getQualifiedName().toString();
                     }
                 }
-                return inputName;
+
+                // Fallback to the default imports
+                try {
+                    return Class.forName("java.lang." + inputName).getName();
+                } catch (Exception exception) {
+                    return inputName;
+                }
             };
         }
     }

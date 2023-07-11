@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class DocFQNExpander {
-    public static final Pattern PATTERN = Pattern.compile("@(?<tag>link|linkplain|see|value)(?<space>\\s+)(?<owner>[\\w$.]*)(?:#(?<member>[\\w%]+)?(\\((?<desc>[\\w$., ]+)?\\))?)?");
+    public static final Pattern PATTERN = Pattern.compile("@(?<tag>link|linkplain|see|value)(?<space>\\s+)(?<owner>[\\w$.]*)(?:#(?<member>[\\w%]+)?(\\((?<desc>[\\w$., \\[\\]]+)?\\))?)?");
     public static String expand(TypeElement declaringClass, Consumer<String> messager, String doc, JavadocCollector.Imports imports) {
         final TypeElement topLevel = Hierarchy.getTopLevel(declaringClass);
         final Supplier<Map<String, TypeElement>> members = JavadocCollector.memoized(() -> {
@@ -60,7 +60,17 @@ public class DocFQNExpander {
         final String[] sDesc = desc.split(",");
         final String[] nDesc = new String[sDesc.length];
         for (int i = 0; i < sDesc.length; i++) {
-            nDesc[i] = imports.getQualified(sDesc[i].trim());
+            String d = sDesc[i].trim();
+            if (d.endsWith("...")) {
+                nDesc[i] = imports.getQualified(d.substring(0, d.length() - 3)) + "...";
+            } else {
+                int arrayAmount = 0;
+                while (d.endsWith("[]")) {
+                    arrayAmount++;
+                    d = d.substring(0, d.length() - 2);
+                }
+                nDesc[i] = imports.getQualified(d) + "[]".repeat(arrayAmount);
+            }
         }
         return nDesc;
     }
