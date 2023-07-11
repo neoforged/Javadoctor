@@ -31,17 +31,17 @@ public record Names(Types types, Elements elements) {
             case LONG -> "J";
             case SHORT -> "S";
             case VOID -> "V";
-            case DECLARED -> "L" + getClassDescriptor(type) + ";";
+            case DECLARED -> getClassDescriptor(type);
             default -> throw new IllegalStateException("Unexpected value: " + type.getKind());
         };
     }
 
     public String getClassDescriptor(TypeMirror type) {
-        return getTypeName(type).replace('.', '/');
+        return "L" + getInternalName(types.asElement(type)) + ";";
     }
 
-    public String getTypeName(TypeMirror type) {
-        return getTypeName(types.asElement(type));
+    public String getInternalName(Element type) {
+        return getTypeName(type).replace('.', '/');
     }
 
     public String getTypeName(Element el) {
@@ -59,4 +59,5 @@ public record Names(Types types, Elements elements) {
             return packageName + "." + className.replace('.', '$');
         }
     }
+
 }

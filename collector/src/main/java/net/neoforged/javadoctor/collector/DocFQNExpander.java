@@ -2,6 +2,7 @@ package net.neoforged.javadoctor.collector;
 
 import net.neoforged.javadoctor.collector.util.Hierarchy;
 import net.neoforged.javadoctor.collector.util.Names;
+import org.jetbrains.annotations.Nullable;
 
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
@@ -41,7 +42,9 @@ public record DocFQNExpander(Elements elements, Names names, Map<String, String>
                 }
                 final TypeElement actualOwner = members.get().get(hasDesc ? member : "#" + member); // this isn't flawless, it will find the wrong one when there's a lot of nesting of classes with the same member names
                 if (actualOwner != null) {
-                    text.append(actualOwner.getQualifiedName());
+                    final String qualifiedName = actualOwner.getQualifiedName().toString();
+                    text.append(qualifiedName);
+                    internalClassNames.put(qualifiedName, names.getInternalName(actualOwner));
                 }
             } else {
                 text.append(owner);
@@ -63,7 +66,7 @@ public record DocFQNExpander(Elements elements, Names names, Map<String, String>
         for (int i = 0; i < sDesc.length; i++) {
             String d = sDesc[i].trim();
             if (d.endsWith("...")) {
-                nDesc[i] = imports.getQualified(d.substring(0, d.length() - 3)) + "...";
+                nDesc[i] = getQualified(imports, d.substring(0, d.length() - 3)) + "...";
             } else {
                 int arrayAmount = 0;
                 while (d.endsWith("[]")) {
@@ -76,13 +79,16 @@ public record DocFQNExpander(Elements elements, Names names, Map<String, String>
         return nDesc;
     }
 
-    private String getQualified(JavadocCollector.Imports imports, String reference) {
+    @Nullable
+    private String getQualified(JavadocCollector.Imports imports, @Nullable String reference) {
+        if (reference == null) return null;
+
         final String qualified = imports.getQualified(reference);
         if (!qualified.isBlank()) {
             if (internalClassNames.get(qualified) == null) {
                 final var typeEl = elements.getTypeElement(qualified);
                 if (typeEl != null) {
-                    internalClassNames.put(qualified, names.getTypeName(typeEl).replace('.', '/'));
+                    internalClassNames.put(qualified, names.getInternalName(typeEl));
                 }
             }
         }
