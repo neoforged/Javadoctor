@@ -6,16 +6,13 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class DocFQNExpander {
     public static final Pattern PATTERN = Pattern.compile("@(?<tag>link|linkplain|see|value)(?<space>\\s+)(?<owner>[\\w$.]*)(?:#(?<member>[\\w%]+)?(\\((?<desc>[\\w$., \\[\\]]+)?\\))?)?");
-    public static String expand(TypeElement declaringClass, Consumer<String> messager, String doc, JavadocCollector.Imports imports) {
+    public static String expand(TypeElement declaringClass, String doc, JavadocCollector.Imports imports) {
         final TypeElement topLevel = Hierarchy.getTopLevel(declaringClass);
         final Supplier<Map<String, TypeElement>> members = JavadocCollector.memoized(() -> {
             final Map<String, TypeElement> memberMap = new HashMap<>();
@@ -35,8 +32,7 @@ public class DocFQNExpander {
             final String desc = result.group(6);
             if (owner == null || owner.isBlank()) {
                 if (member == null) {
-                    messager.accept("Cannot resolve " + result.group(1) + " tag. Owner and member are missing.");
-                    return "";
+                    return result.group(0);
                 }
                 final TypeElement actualOwner = members.get().get(desc == null ? "#" + member : member); // this isn't flawless, it will find the wrong one when there's a lot of nesting of classes with the same member names
                 if (actualOwner != null) {

@@ -151,7 +151,7 @@ public class JavadocCollector {
     private JavadocEntry createJavadoc(Element collectingElement, Imports imports, @Nullable ParameterProvider paramsGetter, @Nullable ParameterProvider genericParamsGetter) {
         String docComment = elements.getDocComment(collectingElement);
         if (docComment == null || docComment.isBlank()) return null;
-        docComment = DocFQNExpander.expand(collectingElement instanceof TypeElement typeElement ? typeElement : (TypeElement) collectingElement.getEnclosingElement(), s -> messager.printMessage(Diagnostic.Kind.ERROR, s, collectingElement), docComment, imports);
+        docComment = DocFQNExpander.expand(collectingElement instanceof TypeElement typeElement ? typeElement : (TypeElement) collectingElement.getEnclosingElement(), docComment, imports);
         docComment = LINKS.matcher(docComment).replaceAll(matchResult -> matchResult.group(1) + " " + imports.getQualified(matchResult.group(2)));
         final List<String> docs = new ArrayList<>();
         Map<String, List<String>> tags = new HashMap<>();
