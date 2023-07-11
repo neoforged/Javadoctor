@@ -44,6 +44,8 @@ public class JavadocCollector {
     private final Names names;
 
     final Map<String, ClassJavadoc> javadocs = new HashMap<>();
+    final Map<String, String> internalClassNames = new HashMap<>();
+    private final DocFQNExpander fqnExpander;
 
     public JavadocCollector(Types types, Messager messager, Elements elements, Trees trees) {
         this.types = types;
@@ -52,6 +54,7 @@ public class JavadocCollector {
         this.trees = trees;
 
         this.names = new Names(types, elements);
+        this.fqnExpander = new DocFQNExpander(elements, names, internalClassNames);
     }
 
     public void collectMixin(TypeElement typeElement, MixinTypes types) {
@@ -153,7 +156,7 @@ public class JavadocCollector {
     private JavadocEntry createJavadoc(Element collectingElement, Imports imports, @Nullable ParameterProvider paramsGetter, @Nullable ParameterProvider genericParamsGetter) {
         String docComment = elements.getDocComment(collectingElement);
         if (docComment == null || docComment.isBlank()) return null;
-        docComment = DocFQNExpander.expand(collectingElement instanceof TypeElement typeElement ? typeElement : (TypeElement) collectingElement.getEnclosingElement(), docComment, imports);
+        docComment = fqnExpander.expand(collectingElement instanceof TypeElement typeElement ? typeElement : (TypeElement) collectingElement.getEnclosingElement(), docComment, imports);
         docComment = LINKS.matcher(docComment).replaceAll(matchResult -> matchResult.group(1) + " " + imports.getQualified(matchResult.group(2)));
         final List<String> docs = new ArrayList<>();
         Map<String, List<String>> tags = new HashMap<>();

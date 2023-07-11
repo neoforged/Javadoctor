@@ -56,7 +56,7 @@ public class Main {
             final Path javadoctorJson = in.getPath("javadoctor.json");
             if (Files.exists(javadoctorJson)) {
                 try (final Reader is = Files.newBufferedReader(javadoctorJson)) {
-                    providers.add(GsonJDocIO.read(GsonJDocIO.GSON, GsonJDocIO.GSON.fromJson(is, JsonObject.class))::get);
+                    providers.add(GsonJDocIO.read(GsonJDocIO.GSON, GsonJDocIO.GSON.fromJson(is, JsonObject.class)).getClassDocs()::get);
                 }
             }
         }
@@ -69,7 +69,7 @@ public class Main {
 
         for (final File doctor : doctors) {
             try (final Reader is = new FileReader(doctor)) {
-                providers.add(GsonJDocIO.read(GsonJDocIO.GSON, GsonJDocIO.GSON.fromJson(is, JsonObject.class))::get);
+                providers.add(GsonJDocIO.read(GsonJDocIO.GSON, GsonJDocIO.GSON.fromJson(is, JsonObject.class)).getClassDocs()::get);
             }
         }
 

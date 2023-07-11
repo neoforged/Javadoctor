@@ -7,9 +7,12 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import net.neoforged.javadoctor.spec.ClassJavadoc;
+import net.neoforged.javadoctor.spec.DocReferences;
 import net.neoforged.javadoctor.spec.JavadocEntry;
+import net.neoforged.javadoctor.spec.JavadoctorInformation;
 
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -77,20 +80,27 @@ public class GsonJDocIO {
             .registerTypeAdapter(JavadocEntry.class, ENTRY_READER)
             .create();
 
-    public static Map<String, ClassJavadoc> read(Gson gson, JsonObject object) {
+    public static JavadoctorInformation read(Gson gson, JsonObject object) {
         if (object.has("javadoctorSpec")) {
             final int spec = object.get("javadoctorSpec").getAsInt();
-            if (spec != 1) {
+            object.remove("javadoctorSpec");
+            if (spec == 1) {
+                return new JavadoctorInformation(
+                        new DocReferences(new HashMap<>()),
+                        gson.fromJson(object, new TypeToken<Map<String, ClassJavadoc>>() {})
+                );
+            } else if (spec == 2) {
+                return gson.fromJson(object, JavadoctorInformation.class);
+            } else {
                 throw new UnsupportedOperationException("Cannot read javadocs of spec: " + spec);
             }
         }
-        object.remove("javadoctorSpec");
-        return gson.fromJson(object, new TypeToken<Map<String, ClassJavadoc>>() {});
+        return gson.fromJson(object, JavadoctorInformation.class);
     }
 
-    public static JsonObject write(Gson gson, Map<String, ClassJavadoc> docs) {
-        final JsonObject jsonObject = gson.toJsonTree(docs).getAsJsonObject();
-        jsonObject.addProperty("javadoctorSpec", 1);
-        return jsonObject;
+    public static JsonObject write(Gson gson, JavadoctorInformation docs) {
+        final JsonObject object = gson.toJsonTree(docs).getAsJsonObject();
+        object.addProperty("javadoctorSpec", 2);
+        return object;
     }
 }

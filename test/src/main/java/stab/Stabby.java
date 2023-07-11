@@ -24,7 +24,7 @@ public class Stabby {
     public static final Stabby INSTANCE = new Stabby();
 
     /**
-     * Self-explanatory by reading the code. Defaults to {@link #CONSTANT}, which is {@value CONSTANT}.
+     * Self-explanatory by reading the code. Defaults to {@link #CONSTANT}, which is {@value #CONSTANT}.
      */
     private static int storage = (int) CONSTANT;
     /**

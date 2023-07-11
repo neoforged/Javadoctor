@@ -1,18 +1,20 @@
 package net.neoforged.javadoctor.collector;
 
 import net.neoforged.javadoctor.collector.util.Hierarchy;
+import net.neoforged.javadoctor.collector.util.Names;
 
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-public class DocFQNExpander {
+public record DocFQNExpander(Elements elements, Names names, Map<String, String> internalClassNames) {
     public static final Pattern PATTERN = Pattern.compile("@(?<tag>link|linkplain|see|value)(?<space>\\s+)(?<owner>[\\w$.]*)(?:#(?<member>[\\w%]+)?(?<descFull>\\((?<desc>[\\w$., \\[\\]]+)?\\))?)?");
-    public static String expand(TypeElement declaringClass, String doc, JavadocCollector.Imports imports) {
+    public String expand(TypeElement declaringClass, String doc, JavadocCollector.Imports imports) {
         final TypeElement topLevel = Hierarchy.getTopLevel(declaringClass);
         final Supplier<Map<String, TypeElement>> members = JavadocCollector.memoized(() -> {
             final Map<String, TypeElement> memberMap = new HashMap<>();
@@ -27,7 +29,7 @@ public class DocFQNExpander {
         return PATTERN.matcher(doc).replaceAll(result -> {
             final StringBuffer text = new StringBuffer()
                     .append('@').append(result.group(1)).append(result.group(2));
-            final String owner = imports.getQualified(result.group(3));
+            final String owner = getQualified(imports, result.group(3));
             final String member = result.group(4);
             final String descFull = result.group(5);
             final boolean hasDesc = descFull != null && !descFull.isBlank();
@@ -55,7 +57,7 @@ public class DocFQNExpander {
         });
     }
 
-    private static String[] getParameterTypes(String desc, JavadocCollector.Imports imports) {
+    private String[] getParameterTypes(String desc, JavadocCollector.Imports imports) {
         final String[] sDesc = desc.split(",");
         final String[] nDesc = new String[sDesc.length];
         for (int i = 0; i < sDesc.length; i++) {
@@ -68,9 +70,22 @@ public class DocFQNExpander {
                     arrayAmount++;
                     d = d.substring(0, d.length() - 2);
                 }
-                nDesc[i] = imports.getQualified(d) + "[]".repeat(arrayAmount);
+                nDesc[i] = getQualified(imports, d) + "[]".repeat(arrayAmount);
             }
         }
         return nDesc;
+    }
+
+    private String getQualified(JavadocCollector.Imports imports, String reference) {
+        final String qualified = imports.getQualified(reference);
+        if (!qualified.isBlank()) {
+            if (internalClassNames.get(qualified) == null) {
+                final var typeEl = elements.getTypeElement(qualified);
+                if (typeEl != null) {
+                    internalClassNames.put(qualified, names.getTypeName(typeEl).replace('.', '/'));
+                }
+            }
+        }
+        return qualified;
     }
 }

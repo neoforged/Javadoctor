@@ -2,6 +2,8 @@ package net.neoforged.javadoctor.collector;
 
 import com.sun.source.util.Trees;
 import net.neoforged.javadoctor.io.gson.GsonJDocIO;
+import net.neoforged.javadoctor.spec.DocReferences;
+import net.neoforged.javadoctor.spec.JavadoctorInformation;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -54,7 +56,7 @@ public class Processor extends AbstractProcessor {
 
         try (final Writer writer = processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", "javadoctor.json")
                 .openWriter()) {
-            GsonJDocIO.GSON.toJson(GsonJDocIO.write(GsonJDocIO.GSON, collector.javadocs), writer);
+            GsonJDocIO.GSON.toJson(GsonJDocIO.write(GsonJDocIO.GSON, new JavadoctorInformation(new DocReferences(collector.internalClassNames), collector.javadocs)), writer);
         } catch (Exception exception) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Could not write javadocs json: " + exception);
         }
