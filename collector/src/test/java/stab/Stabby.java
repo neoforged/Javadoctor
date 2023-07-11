@@ -138,7 +138,7 @@ public class Stabby {
             }
 
             /**
-             * Hidden again! Stabs are recorded {@linkplain Stabby#read() from the registry}.
+             * Hidden again! Stabs are recorded {@linkplain #read() from the registry}.
              *
              * @param state the stab state
              */

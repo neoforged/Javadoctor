@@ -1,6 +1,8 @@
 package hello;
 
 import stab.Stabby;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.IntBinaryOperator;
 
 /**
  * This is a bolb.
@@ -11,6 +13,7 @@ import stab.Stabby;
 public class Bolb {
     /**
      * If ten or more {@linkplain Stabby stabs} have been registered, we invoke {@linkplain System#exit(int)} death by JVM}.
+     * Do not dare to call {@link AtomicInteger#getAndAccumulate(int, IntBinaryOperator)}.
      */
     public void check() {
         if (Stabby.INSTANCE.read() > 10) {

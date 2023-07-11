@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,7 +55,7 @@ public class JavadocCollector {
     }
 
     public void collectMixin(TypeElement typeElement, MixinTypes types) {
-        final Imports imports = Imports.fromTree(trees.getPath(typeElement));
+        final Imports imports = Imports.fromTree(trees.getPath(typeElement), typeElement);
         final AnnotationUtils mixinAn = types.getAnnotation(typeElement, types.Mixin);
         final List<TypeElement> mixind = mixinAn.getClasses("value");
         typeElement.getEnclosedElements().forEach(element -> {
@@ -116,7 +117,7 @@ public class JavadocCollector {
     }
 
     public ClassJavadoc buildClass(TypeElement clazz) {
-        final Imports imports = Imports.fromTree(trees.getPath(clazz));
+        final Imports imports = Imports.fromTree(trees.getPath(clazz), clazz);
         final JavadocEntry clazzdoc = createJavadoc(clazz, imports, clazz.getKind() == ElementKind.RECORD ? ParameterProvider.provider(ElementFilter.recordComponentsIn(clazz.getEnclosedElements())) : null, ParameterProvider.provider(clazz.getTypeParameters()));
         Map<String, JavadocEntry> methods = new HashMap<>();
         Map<String, JavadocEntry> fields = new HashMap<>();
@@ -150,6 +151,7 @@ public class JavadocCollector {
     private JavadocEntry createJavadoc(Element collectingElement, Imports imports, @Nullable ParameterProvider paramsGetter, @Nullable ParameterProvider genericParamsGetter) {
         String docComment = elements.getDocComment(collectingElement);
         if (docComment == null || docComment.isBlank()) return null;
+        docComment = DocFQNExpander.expand(collectingElement instanceof TypeElement typeElement ? typeElement : (TypeElement) collectingElement.getEnclosingElement(), s -> messager.printMessage(Diagnostic.Kind.ERROR, s, collectingElement), docComment, imports);
         docComment = LINKS.matcher(docComment).replaceAll(matchResult -> matchResult.group(1) + " " + imports.getQualified(matchResult.group(2)));
         final List<String> docs = new ArrayList<>();
         Map<String, List<String>> tags = new HashMap<>();
@@ -287,7 +289,7 @@ public class JavadocCollector {
 
     public interface Imports {
         String getQualified(String inputName);
-        static Imports fromTree(TreePath tree) {
+        static Imports fromTree(TreePath tree, TypeElement owner) {
             final Supplier<Map<String, String>> imports = memoized(() -> {
                 final Map<String, String> i = new HashMap<>();
                 tree.getCompilationUnit().getImports().forEach(importTree -> {
@@ -300,14 +302,27 @@ public class JavadocCollector {
                 });
                 return i;
             });
-            return inputName -> imports.get().getOrDefault(
-                    inputName.substring(0, lastReferenceLocation(inputName)),
-                    inputName
-            );
+            final TypeElement finalTopLevel = Hierarchy.getTopLevel(owner);
+            final Supplier<Map<String, TypeElement>> topChildren = memoized(() -> Stream.concat(Stream.of(finalTopLevel), Hierarchy.walkChildren(finalTopLevel))
+                    .collect(Collectors.toMap(it -> it.getSimpleName().toString(), Function.identity())));
+            return inputName -> {
+                final String last = inputName.substring(0, lastReferenceLocation(inputName));
+                final String imp = imports.get().get(last);
+                if (imp != null) {
+                    return imp;
+                }
+                if (!inputName.startsWith("#")) {
+                    final TypeElement child = topChildren.get().get(last); // TODO - this isn't flawless, it will find the wrong one when there's a lot of nesting of classes with the same name
+                    if (child != null) {
+                        return child.getQualifiedName().toString();
+                    }
+                }
+                return inputName;
+            };
         }
     }
 
-    private static <T> Supplier<T> memoized(Supplier<T> value) {
+    static <T> Supplier<T> memoized(Supplier<T> value) {
         return new Supplier<>() {
             T val;
             @Override

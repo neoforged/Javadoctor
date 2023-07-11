@@ -52,4 +52,19 @@ public record Hierarchy(Types types, Names names) {
                 .map(TypeElement.class::cast)
                 .flatMap(e -> Stream.concat(walkEnclosingClasses(e), Stream.of(e)));
     }
+
+    public static Stream<TypeElement> walkChildren(TypeElement clazz) {
+        return clazz.getEnclosedElements().stream()
+                .filter(e -> e.getKind().isClass() || e.getKind().isInterface())
+                .map(TypeElement.class::cast)
+                .flatMap(e -> Stream.concat(walkChildren(e), Stream.of(e)).distinct());
+    }
+
+    public static TypeElement getTopLevel(TypeElement clazz) {
+        TypeElement topLevel = clazz;
+        while (topLevel.getEnclosingElement().getKind() != ElementKind.PACKAGE) {
+            topLevel = (TypeElement) topLevel.getEnclosingElement();
+        }
+        return topLevel;
+    }
 }
