@@ -250,6 +250,7 @@ public class JavadocCollector {
                 if (tagName != null) {
                     walker.onTag(tagName, current.toString());
                     current = null;
+                    tagName = null;
                 }
                 walker.onLine(line.trim());
             }
