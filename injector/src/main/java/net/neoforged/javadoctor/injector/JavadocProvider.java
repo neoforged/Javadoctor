@@ -1,8 +1,7 @@
 package net.neoforged.javadoctor.injector;
 
 import net.neoforged.javadoctor.spec.ClassJavadoc;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public interface JavadocProvider {
     @Nullable

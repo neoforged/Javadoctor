@@ -2,6 +2,11 @@ plugins {
     id 'java'
 }
 evaluationDependsOn(':injector')
+rootProject.subprojects.each {
+    if (it.name.startsWith('injector-')) {
+        evaluationDependsOn(":${it.name}")
+    }
+}
 
 java {
     toolchain {
@@ -16,8 +21,8 @@ repositories {
             includeGroup('org.spongepowered')
         }
     }
-    mavenLocal {
-//        url 'https://maven.neoforged.net'
+    maven {
+        url 'https://maven.neoforged.net'
         content {
             includeGroup('net.neoforged')
         }
@@ -26,7 +31,6 @@ repositories {
 
 configurations {
     decompiler
-    injector
     fart {
         transitive = false
     }
@@ -37,8 +41,7 @@ dependencies {
     annotationProcessor project(':collector')
 
     decompiler 'org.vineflower:vineflower:1.9.1'
-    injector project(':injector')
-    fart 'net.neoforged:AutoRenamingTool:1.0.4:all'
+    fart 'net.neoforged:AutoRenamingTool:1.0.5:all'
 }
 
 tasks.named('compileJava', JavaCompile).configure {
@@ -59,10 +62,18 @@ tasks.register('decompile', DecompileTask) {
     input.set(tasks.obfJar.output)
 }
 
-tasks.register('applyDocs', InjectDocsTask) {
-    group = 'test'
-    input.set(tasks.named('decompile', DecompileTask).flatMap { it.output })
-    classpath.from(project.configurations.injector)
+rootProject.subprojects.each { proj ->
+    if (proj.name.startsWith('injector-')) {
+        final injectorName = proj.name.substring('injector-'.length())
+        final confProvider = configurations.register("injector${injectorName.capitalize()}") {
+            it.dependencies.add(project.dependencies.create(proj))
+        }
+        tasks.register("applyDocs${injectorName.capitalize()}", InjectDocsTask) {
+            group = 'test'
+            input.set(tasks.named('decompile', DecompileTask).flatMap { it.output })
+            classpath.from(confProvider)
+        }
+    }
 }
 
 abstract class DecompileTask extends DefaultTask {

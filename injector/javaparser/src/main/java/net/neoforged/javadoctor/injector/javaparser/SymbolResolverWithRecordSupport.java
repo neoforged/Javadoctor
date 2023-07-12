@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
  */
 
-package net.neoforged.javadoctor.injector;
+package net.neoforged.javadoctor.injector.javaparser;
 
 import com.github.javaparser.ast.AccessSpecifier;
 import com.github.javaparser.ast.Node;

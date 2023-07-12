@@ -11,3 +11,11 @@ plugins {
 
 rootProject.name = 'Javadoctor'
 include ':spec', ':collector', ':injector', ':gson-io', ':test'
+
+includeInjector('spoon')
+includeInjector('javaparser')
+
+void includeInjector(String name) {
+    include ":injector-$name"
+    project(":injector-$name").projectDir = new File("injector/$name")
+}

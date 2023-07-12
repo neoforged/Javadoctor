@@ -1,8 +1,8 @@
 package net.neoforged.javadoctor.injector;
 
 import net.neoforged.javadoctor.spec.JavadocEntry;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.Comparator;

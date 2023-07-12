@@ -187,7 +187,7 @@ public class JavadocCollector {
                             if (idx == -1) {
                                 messager.printMessage(Diagnostic.Kind.WARNING, "Unknown generic parameter named '" + generic.group(1) + "'", collectingElement);
                             } else {
-                                (typeParameters == null ? (typeParameters = genericParamsGetter.provide()) : typeParameters)[idx] = splitWithParam[1];
+                                (typeParameters == null ? (typeParameters = genericParamsGetter.provide()) : typeParameters)[idx] = splitWithParam[1].trim();
                             }
                         }
                     } else {
@@ -198,7 +198,7 @@ public class JavadocCollector {
                             if (idx == -1) {
                                 messager.printMessage(Diagnostic.Kind.WARNING, "Unknown parameter named '" + paramName + "'", collectingElement);
                             } else {
-                                (parameters == null ? (parameters = paramsGetter.provide()) : parameters)[idx] = splitWithParam[1];
+                                (parameters == null ? (parameters = paramsGetter.provide()) : parameters)[idx] = splitWithParam[1].trim();
                             }
                         }
                     }

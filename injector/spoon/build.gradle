@@ -1,0 +1,9 @@
+dependencies {
+    dependency 'fr.inria.gforge.spoon:spoon-core:10.4.0'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}

@@ -1,14 +1,13 @@
 package net.neoforged.javadoctor.injector;
 
-import com.github.javaparser.ParseResult;
 import com.google.gson.JsonObject;
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 import net.neoforged.javadoctor.io.gson.GsonJDocIO;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,9 +24,8 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.ServiceLoader;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -73,9 +71,12 @@ public class Main {
             }
         }
 
+        final ClassParserFactory factory = ServiceLoader.load(ClassParserFactory.class)
+                .iterator().next();
+
         final JavadocInjector injector = new JavadocInjector(
-                options.valueOf(javaVersion), new CombiningJavadocProvider(providers),
-                options.valuesOf(classpathO).stream().map(File::toPath).collect(Collectors.toSet())
+                factory.createParser(options.valuesOf(classpathO), options.valueOf(javaVersion)),
+                new CombiningJavadocProvider(providers)
         );
 
         final Path out = options.valueOf(outputO).toPath();
@@ -88,12 +89,12 @@ public class Main {
                 final ZipEntry newEntry = new ZipEntry(next);
                 if (next.getName().endsWith(".java")) {
                     final byte[] bytes = readAllBytes(input);
-                    final ParseResult<JavadocInjector.InjectionResult> result = injector.injectDocs(
+                    final Result<JavadocInjector.InjectionResult> result = injector.injectDocs(
+                            next.getName().substring(0, next.getName().length() - 5).replace('/', '.'),
                             new String(bytes, StandardCharsets.UTF_8),
                             getMappings(next)
                     );
-
-                    if (result.isSuccessful()) {
+                    if (result.getResult().isPresent()) {
                         final JavadocInjector.InjectionResult res = result.getResult().get();
                         if (res.mapping != null) {
                             newEntry.setExtra(getCodeLineData(res.mapping));
@@ -101,9 +102,8 @@ public class Main {
                         output.putNextEntry(newEntry);
                         output.write(res.newSource.getBytes(StandardCharsets.UTF_8));
                     } else {
-                        System.err.println("Failed to read or process class " + next.getName() + ": ");
+                        System.err.println("Encountered problems parsing class " + next.getName() + ":");
                         result.getProblems().forEach(System.err::println);
-
                         output.putNextEntry(newEntry);
                         output.write(bytes);
                     }

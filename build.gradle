@@ -1,5 +1,8 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id 'net.minecraftforge.gradleutils' version '[2.0.13,)'
+    id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
 }
 
 changelog {
@@ -19,17 +22,44 @@ subprojects {
         withSourcesJar()
     }
 
+    if (name.startsWith('injector-')) {
+        apply plugin: 'java-library'
+        apply plugin: 'com.github.johnrengelman.shadow'
+        apply plugin: 'application'
+
+        application {
+            mainClass.set('net.neoforged.javadoctor.injector.Main')
+        }
+
+        configurations {
+            dependency
+            api.extendsFrom(dependency)
+        }
+        evaluationDependsOn(':injector')
+        dependencies {
+            dependency project(':injector')
+        }
+
+        tasks.named('shadowJar', ShadowJar) {
+            // JOPT doesn't like being relocated
+            //    enableRelocation = true
+            //    relocationPrefix = 'net.neoforged.javadoctor.injector.relocate'
+            configurations = [project.configurations.dependency]
+        }
+    }
+
     repositories {
-        mavenCentral()
+        mavenCentral {
+            metadataSources {
+                mavenPom()
+            }
+        }
     }
 
     publishing {
         publications {
             mavenJava(MavenPublication) {
                 from components.java
-                if (project.plugins.hasPlugin('com.github.johnrengelman.shadow')) {
-                    artifact project.tasks.shadowJar
-                }
             }
         }
         repositories {

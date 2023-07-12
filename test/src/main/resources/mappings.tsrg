@@ -5,5 +5,10 @@ stab/Stabby stab/Stabby
 	read ()I m_dont_look_here
 	hi ([Ljava/lang/String;)V m_hi_remapped
 		0 things p_1
+	changeLocks ()V locksChange
+		static
 stab/Stabby$StabState stab/Stabby$BetterStabbingState
 	AIMED AIMED_or_is_it
+hello/Bolb bolb/Hello
+hello/RecordBolb hello/RecordBolb
+	hi hiButRenamed
