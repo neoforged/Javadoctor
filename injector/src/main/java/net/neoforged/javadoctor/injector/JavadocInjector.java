@@ -43,21 +43,44 @@ public class JavadocInjector {
             }
 
             final AtomicInteger offset = new AtomicInteger();
-            final int[] newMapping = new int[mappingIn == null ? 0 : mappingIn.length];
+            final List<Integer> newMapping = new ArrayList<>();
+            if (mappingIn != null) {
+                for (int i : mappingIn) {
+                    newMapping.add(i);
+                }
+            }
+
             for (final JClass type : classes) {
                 final ClassJavadoc javadoc = javadocProvider.get(type.getFullyQualifiedName());
                 if (javadoc == null) {
                     continue;
                 }
 
-                inject(newSource, type, javadoc, offset, newMapping);
+                inject(newSource, type, javadoc, offset, newMapping, mappingIn == null);
             }
-            return new InjectionResult(mappingIn, String.join(System.lineSeparator(), newSource));
+            return new InjectionResult(newMapping.stream().mapToInt(i -> i).toArray(), String.join(System.lineSeparator(), newSource));
         });
     }
 
     @SuppressWarnings("all")
-    private void inject(List<String> newSource, JClass declaration, ClassJavadoc javadoc, AtomicInteger offset, int[] mapping) {
+    private void inject(List<String> newSource, JClass declaration, ClassJavadoc javadoc, AtomicInteger offset, List<Integer> mapping, boolean appendLineMappings) {
+        final List<JElement> members = new ArrayList<>();
+        members.addAll(declaration.getChildren());
+        Collections.sort(members, Comparator.comparing(r -> r.getSourceLine().orElse(-1)));
+
+        if (appendLineMappings) {
+            declaration.getSourceLine().ifPresent(line -> {
+                mapping.add(line);
+                mapping.add(line);
+            });
+            for (final JElement member : members) {
+                member.getSourceLine().ifPresent(line -> {
+                    mapping.add(line);
+                    mapping.add(line);
+                });
+            }
+        }
+
         if (javadoc.clazz() != null) {
             declaration.getSourceLine()
                 .ifPresent(line -> {
@@ -74,10 +97,6 @@ public class JavadocInjector {
         final Map<String, JavadocEntry> fields = (javadoc.fields() == null ? new HashMap<String, JavadocEntry>() : javadoc.fields()).entrySet()
                 .stream().collect(Collectors.toMap(e -> e.getKey().split(":", 2)[0], Map.Entry::getValue));
         final Map<String, JavadocEntry> methods = (javadoc.methods() == null ? new HashMap<String, JavadocEntry>() : parser.processMethodMap(javadoc.methods()));
-
-        final List<JElement> members = new ArrayList<>();
-        members.addAll(declaration.getChildren());
-        Collections.sort(members, Comparator.comparing(r -> r.getSourceLine().orElse(-1)));
 
         final Consumer<JElement> memberConsumer = member -> {
             if (member instanceof JField) {
@@ -116,7 +135,7 @@ public class JavadocInjector {
                 final JClass type = (JClass) member;
                 final ClassJavadoc innerDoc = javadoc.innerClasses().get(type.getName());
                 if (innerDoc != null) {
-                    inject(newSource, type, innerDoc, offset, mapping);
+                    inject(newSource, type, innerDoc, offset, mapping, appendLineMappings);
                 }
             }
         };
@@ -147,11 +166,11 @@ public class JavadocInjector {
         return null;
     }
 
-    private static void pushMappingFix(int[] mapping, int start, int amount) {
-        for (int i = 0; i < mapping.length; i += 2) {
-            int line = mapping[i + 1];
-            if (line >= start) {
-                mapping[i + 1] += amount;
+    private static void pushMappingFix(List<Integer> mapping, int start, int amount) {
+        for (int i = 0; i < mapping.size(); i += 2) {
+            int originalLine = mapping.get(i);
+            if (originalLine >= start) {
+                mapping.set(i + 1, mapping.get(i + 1) + amount);
             }
         }
     }
