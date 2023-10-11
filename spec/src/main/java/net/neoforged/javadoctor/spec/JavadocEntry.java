@@ -42,7 +42,10 @@ public final class JavadocEntry {
         return typeParameters;
     }
 
-    public JavadocEntry merge(JavadocEntry other) {
+    public JavadocEntry merge(@Nullable JavadocEntry other) {
+        if (other == null) {
+            return this;
+        }
         return new JavadocEntry(
                 doc == null ? other.doc : doc,
                 ClassJavadoc.mergeMaps(ClassJavadoc::mergeLists, this.tags, other.tags),

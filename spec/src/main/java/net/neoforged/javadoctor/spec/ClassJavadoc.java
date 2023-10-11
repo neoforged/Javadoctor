@@ -50,7 +50,7 @@ public final class ClassJavadoc {
     public ClassJavadoc merge(@Nullable ClassJavadoc other) {
         if (other == null) return this;
         return new ClassJavadoc(
-                clazz == null ? other.clazz : other.clazz == null ? clazz : clazz.merge(other.clazz),
+                clazz == null ? other.clazz : clazz.merge(other.clazz),
                 mergeMaps(JavadocEntry::merge, this.methods, other.methods),
                 mergeMaps(JavadocEntry::merge, this.fields, other.fields),
                 mergeMaps(ClassJavadoc::merge, this.innerClasses, other.innerClasses)
