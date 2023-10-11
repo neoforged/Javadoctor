@@ -10,8 +10,8 @@ class InsertTest {
 
     static class Inner1 {
         static class Inner2 {
-            int weirdNr2(AtomicInteger integer) {
-                return integer.get();
+            int weirdNr2(AtomicInteger integer, int replacement) {
+                return integer.getAndSet(replacement);
             }
         }
     }

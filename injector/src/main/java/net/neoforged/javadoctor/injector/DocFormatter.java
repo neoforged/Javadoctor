@@ -4,13 +4,7 @@ import net.neoforged.javadoctor.spec.JavadocEntry;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.BreakIterator;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.IntFunction;
 import java.util.stream.Collectors;
@@ -57,7 +51,7 @@ public class DocFormatter {
             .stream().sorted(Map.Entry.comparingByKey(TAGS_ORDER))
             .flatMap(e -> e.getValue().stream()
                     .sorted(Comparator.naturalOrder())
-                    .map(v -> formatTag(e.getKey(), v)))
+                    .flatMap(v -> formatTag(e.getKey(), v).stream()))
             .forEach(lines::add);
 
         final String joined = lines.stream().map(ln -> indent + " * " + ln).collect(Collectors.joining("\n"));
@@ -77,47 +71,56 @@ public class DocFormatter {
             .stream().sorted(Map.Entry.comparingByKey(TAGS_ORDER))
             .flatMap(e -> e.getValue().stream()
                     .sorted(Comparator.naturalOrder())
-                    .map(v -> formatTag(e.getKey(), v)))
+                    .flatMap(v -> formatTag(e.getKey(), v).stream()))
             .forEach(lines::add);
     }
 
-    private static String formatTag(String name, String value) {
+    private static List<String> formatTag(String name, String value) {
+        List<String> out = new ArrayList<>();
         final String start = "@" + name;
-        final StringBuilder builder = new StringBuilder()
+        StringBuilder builder = new StringBuilder()
                 .append(start).append(' ');
         final String[] split = value.split("\n");
         for (int i = 0; i < split.length; i++) {
             if (i == 0) {
-                builder.append(split[i]);
+                builder.append(split[i].trim());
+                if (i < split.length - 1) {
+                    out.add(builder.toString());
+                    builder = new StringBuilder();
+                }
             } else {
                 builder.append(repeat(" ", start.length() + 1))
-                        .append(split[i]);
+                        .append(split[i].trim());
                 if (i < split.length - 1) {
-                    builder.append("\n");
+                    out.add(builder.toString());
+                    builder = new StringBuilder();
                 }
             }
         }
-        return builder.toString();
+        out.add(builder.toString());
+        return out;
     }
 
     private static void appendParameters(List<String> lines, String[] parameters, IntFunction<String> nameGetter) {
         int paramsIndentSize = 0;
         for (int i = 0; i < parameters.length; i++) {
             if (parameters[i] == null) continue;
-            paramsIndentSize = Math.max(paramsIndentSize, ("@param " + nameGetter.apply(i)).length());
+            paramsIndentSize = Math.max(paramsIndentSize, ("@param " + nameGetter.apply(i)).length() + 1);
         }
 
+        int finalParamsIndentSize = paramsIndentSize;
         final String paramIndent = repeat(" ", paramsIndentSize);
         for (int i = 0; i < parameters.length; i++) {
             final int finalI = i;
             splitIntoMultipleLines(MAX_PARAM_LENGTH - paramsIndentSize, parameters[i], (line, index) -> {
                 if (index == 0) {
-                    lines.add("@param " + nameGetter.apply(finalI) + " " + line);
+                    final String start = "@param " + nameGetter.apply(finalI);
+                    final String startIndent = repeat(" ", finalParamsIndentSize - start.length());
+                    lines.add(start + startIndent + line);
                 } else {
                     lines.add(paramIndent + line);
                 }
             });
-            paramsIndentSize = Math.max(paramsIndentSize, ("@param " + nameGetter.apply(i)).length());
         }
     }
 
@@ -139,7 +142,7 @@ public class DocFormatter {
                 currentLine = new StringBuilder().append(word);
             } else {
                 if (currentLine.length() + word.length() > maxLength) {
-                    consumer.accept(currentLine.toString(), amount++);
+                    consumer.accept(currentLine.toString().trim(), amount++);
                     currentLine = new StringBuilder().append(word);
                 } else {
                     currentLine.append(word);
