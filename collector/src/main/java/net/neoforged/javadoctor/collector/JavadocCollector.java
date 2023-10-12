@@ -251,7 +251,7 @@ public class JavadocCollector {
             }
 
             if ((line.isEmpty() || line.charAt(0) == ' ') && tagName != null) {
-                current.append(line.trim());
+                current.append(' ').append(line.trim());
             } else {
                 if (tagName != null) {
                     walker.onTag(tagName, current.toString().trim());
