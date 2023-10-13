@@ -61,9 +61,13 @@ public class JavadocCollector {
         final Imports imports = Imports.fromTree(trees.getPath(typeElement), typeElement);
         final AnnotationUtils mixinAn = types.getAnnotation(typeElement, types.Mixin);
         final List<TypeElement> mixind = mixinAn.getClasses("value");
+
+        final JavadocEntry clazzdoc = createJavadoc(typeElement, imports, null, ParameterProvider.provider(typeElement.getTypeParameters()));
+
+        final Map<String, JavadocEntry> methods = new HashMap<>();
+        final Map<String, JavadocEntry> fields = new HashMap<>();
+
         typeElement.getEnclosedElements().forEach(element -> {
-            final Map<String, JavadocEntry> methods = new HashMap<>();
-            final Map<String, JavadocEntry> fields = new HashMap<>();
             if ((element.getKind() == ElementKind.METHOD && (types.getAnnotation(element, types.Shadow) != null || types.getAnnotation(element, types.Unique) != null)) || element.getKind() == ElementKind.CONSTRUCTOR) {
                 final ExecutableElement executableElement = (ExecutableElement) element;
                 methods.put(
@@ -76,11 +80,11 @@ public class JavadocCollector {
                         createJavadoc(element, imports, null, null)
                 );
             }
-
-            if (!methods.isEmpty() || !fields.isEmpty()) {
-                mixind.forEach(mx -> mergeWithExisting(mx, new ClassJavadoc(null, methods.isEmpty() ? null : methods, fields.isEmpty() ? null : fields, null)));
-            }
         });
+
+        if (!methods.isEmpty() || !fields.isEmpty() || clazzdoc != null) {
+            mixind.forEach(mx -> mergeWithExisting(mx, new ClassJavadoc(clazzdoc, methods.isEmpty() ? null : methods, fields.isEmpty() ? null : fields, null)));
+        }
     }
 
     public void mergeWithExisting(TypeElement type, ClassJavadoc doc) {
