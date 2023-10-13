@@ -20,6 +20,9 @@ abstract class InsertTestMixin {
     abstract void weirdThingy();
 }
 
+/**
+ * Some interesting mixin injected...
+ */
 @Mixin(InsertTest.Inner1.Inner2.class)
 abstract class Inner2Mixin {
     /**

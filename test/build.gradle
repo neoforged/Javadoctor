@@ -42,6 +42,10 @@ dependencies {
 
     decompiler 'org.vineflower:vineflower:1.9.1'
     fart 'net.neoforged:AutoRenamingTool:1.0.5:all'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
+    testImplementation 'fr.inria.gforge.spoon:spoon-core:10.4.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
 }
 
 tasks.named('compileJava', JavaCompile).configure {
@@ -74,6 +78,15 @@ rootProject.subprojects.each { proj ->
             classpath.from(confProvider)
         }
     }
+}
+
+test {
+    useJUnitPlatform()
+    dependsOn('applyDocsSpoon')
+    dependsOn('applyDocsJavaparser')
+
+    jvmArgs('-DspoonJar=' + project.file("${project.buildDir}/applyDocsSpoon/output.jar"))
+    jvmArgs('-DjavaparserJar=' + project.file("${project.buildDir}/applyDocsJavaparser/output.jar"))
 }
 
 abstract class DecompileTask extends DefaultTask {
