@@ -6,6 +6,8 @@ plugins {
     id 'io.github.gradle-nexus.publish-plugin' version '1.3.0'
 }
 
+group = 'net.neoforged.javadoctor'
+
 changelog {
     fromTag '1.0'
 }
