@@ -27,9 +27,9 @@ version = "2021.2"
 
 project {
 
-    buildType(Build)
-    buildType(BuildSecondaryBranches)
-    buildType(PullRequests)
+//    buildType(Build)
+//    buildType(BuildSecondaryBranches)
+//    buildType(PullRequests)
 
     params {
         text("git_main_branch", "main", label = "Git Main Branch", description = "The git main or default branch to use in VCS operations.", display = ParameterDisplay.HIDDEN, allowEmpty = false)
