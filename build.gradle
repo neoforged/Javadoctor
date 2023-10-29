@@ -11,6 +11,7 @@ group = 'net.neoforged.javadoctor'
 changelog {
     fromTag '1.0'
 }
+changelog.disableAutomaticPublicationRegistration()
 
 allprojects {
     println("${it.name} version: ${version = gradleutils.tagOffsetVersion}")
