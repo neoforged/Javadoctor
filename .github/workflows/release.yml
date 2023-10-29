@@ -13,7 +13,8 @@ jobs:
     uses: neoforged/actions/.github/workflows/gradle-publish.yml@main
     with:
       java: 17
-      gradle_tasks: 'test publish closeAndReleaseSonatypeStagingRepository'
+      pre_gradle_tasks: 'test'
+      gradle_tasks: 'publish closeAndReleaseSonatypeStagingRepository'
     secrets:
       DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
 
