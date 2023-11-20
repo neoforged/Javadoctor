@@ -19,7 +19,6 @@ allprojects {
 }
 
 gradleutils {
-    setupSigning()
     setupCentralPublishing()
 }
 
@@ -27,6 +26,7 @@ subprojects { proj ->
     apply plugin: 'java'
     if (name != 'test') {
         apply plugin: 'maven-publish'
+        apply plugin: 'net.neoforged.gradleutils'
     }
 
     group = 'net.neoforged.javadoctor'
@@ -35,7 +35,9 @@ subprojects { proj ->
         withSourcesJar()
     }
 
-    gradleutils.setupSigning(proj)
+    proj.gradleutils {
+        setupSigning()
+    }
 
     if (name.startsWith('injector-')) {
         apply plugin: 'java-library'
@@ -74,9 +76,9 @@ subprojects { proj ->
     if (name != 'test') {
         publishing {
             publications {
-                create('mavenJava', MavenPublication) {
+                mavenJava(MavenPublication) {
                     from components.java
-                    gradleutils.sign(it)
+                    proj.gradleutils.sign(it)
 
                     pom {
                         name = "javadoctor-${proj.name}"
