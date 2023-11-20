@@ -20,6 +20,7 @@ allprojects {
 
 gradleutils {
     setupSigning()
+    setupCentralPublishing()
 }
 
 subprojects { proj ->
