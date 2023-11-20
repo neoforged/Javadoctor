@@ -1,7 +1,8 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import net.neoforged.gradleutils.PomUtilsExtension.License
 
 plugins {
-    id 'net.minecraftforge.gradleutils' version '[2.0.13,)'
+    id 'net.neoforged.gradleutils' version '3.0.0-alpha.4'
     id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
     id 'io.github.gradle-nexus.publish-plugin' version '1.3.0'
 }
@@ -9,28 +10,21 @@ plugins {
 group = 'net.neoforged.javadoctor'
 
 changelog {
-    fromTag '1.0'
+    from '1.0'
 }
 changelog.disableAutomaticPublicationRegistration()
 
 allprojects {
-    println("${it.name} version: ${version = gradleutils.tagOffsetVersion}")
+    println("${it.name} version: ${version = gradleutils.version}")
 }
 
-nexusPublishing {
-    repositories {
-        sonatype {
-            username.set(System.getenv('SONATYPE_USER') ?: '')
-            password.set(System.getenv('SONATYPE_PASSWORD') ?: '')
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-        }
-    }
+gradleutils {
+    setupSigning()
 }
 
 subprojects { proj ->
     apply plugin: 'java'
     if (name != 'test') {
-        apply plugin: 'signing'
         apply plugin: 'maven-publish'
     }
 
@@ -39,6 +33,8 @@ subprojects { proj ->
         withJavadocJar()
         withSourcesJar()
     }
+
+    gradleutils.setupSigning(proj)
 
     if (name.startsWith('injector-')) {
         apply plugin: 'java-library'
@@ -77,48 +73,24 @@ subprojects { proj ->
     if (name != 'test') {
         publishing {
             publications {
-                mavenJava(MavenPublication) {
+                register('mavenJava', MavenPublication) {
                     from components.java
+                    gradleutils.sign(it)
 
                     pom {
                         name = "javadoctor-${proj.name}"
                         packaging = 'jar'
                         description = 'A Javadoc injection tool'
-                        url = 'https://github.com/NeoForged/Javadoctor'
                         inceptionYear = '2023'
 
-                        licenses {
-                            license {
-                                name = 'LGPL 2.1'
-                                url = 'https://opensource.org/license/lgpl-2-1/'
-                            }
-                        }
-                        developers {
-                            developer {
-                                id = 'neoforged'
-                                name = 'NeoForged'
-                                email = 'contact@neoforged.net'
-                                url = 'https://github.com/NeoForged/'
-                            }
-                        }
-                        scm {
-                            connection='scm:git:git://github.com/NeoForged/Javadoctor.git'
-                            url='https://github.com/NeoForged/Javadoctor'
-                        }
+                        pomUtils.neoForgedDeveloper(it)
+                        pomUtils.license(it, License.LGPL_v2)
+                        pomUtils.githubRepo(it, 'Javadoctor')
                     }
                 }
             }
             repositories {
-                maven gradleutils.getPublishingForgeMaven()
-            }
-        }
-
-        if (System.getenv('GPG_PRIVATE_KEY')) {
-            signing {
-                final signingKey = System.getenv('GPG_PRIVATE_KEY') ?: ''
-                final signingPassword = System.getenv('GPG_KEY_PASSWORD') ?: ''
-                useInMemoryPgpKeys(signingKey, signingPassword)
-                sign publishing.publications.mavenJava
+                maven gradleutils.publishingMaven
             }
         }
     }
