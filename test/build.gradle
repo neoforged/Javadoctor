@@ -83,6 +83,7 @@ rootProject.subprojects.each { proj ->
             group = 'test'
             input.set(tasks.named('decompile', DecompileTask).flatMap { it.output })
             classpath.from(confProvider)
+            javaVersion.set(17)
         }
     }
 }
@@ -161,6 +162,9 @@ abstract class InjectDocsTask extends DefaultTask {
     @InputFiles
     abstract ConfigurableFileCollection getClasspath()
 
+    @Input
+    abstract Property<Integer> getJavaVersion()
+
     InjectDocsTask() {
         output.convention(project.layout.file(project.provider { project.file("${project.buildDir}/${name}/output.jar") }))
     }
@@ -174,6 +178,9 @@ abstract class InjectDocsTask extends DefaultTask {
             spec.jvmArgs('-Xmx256M')
             spec.classpath(cp)
             spec.mainClass.set('net.neoforged.javadoctor.injector.Main')
+            spec.executable = project.extensions.getByType(JavaToolchainService).launcherFor {
+                languageVersion = JavaLanguageVersion.of(javaVersion.get())
+            }.get().executablePath
         }
     }
 }
