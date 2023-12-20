@@ -31,14 +31,17 @@ public class JavadocInjector {
 
     @SuppressWarnings({"UseBulkOperation", "ManualArrayToCollectionCopy"})
     public Result<InjectionResult> injectDocs(
+            String path,
             String className,
-            String sourceIn,
+            String sourceInIn,
             @Nullable int[] mappingIn
     ) {
+        // Uh.. yes
+        final String sourceIn = sourceInIn.replace("\r\n", "\n");
         if (javadocProvider.get(className) == null) return new Result<>(new InjectionResult(mappingIn, sourceIn));
-        return parser.parse(sourceIn).map(classes -> {
+        return parser.parseFromPath(path, sourceIn).map(classes -> {
             final List<String> newSource = new ArrayList<>();
-            for (final String line : sourceIn.split(System.lineSeparator())){
+            for (final String line : sourceIn.split("\n")) {
                 newSource.add(line);
             }
 

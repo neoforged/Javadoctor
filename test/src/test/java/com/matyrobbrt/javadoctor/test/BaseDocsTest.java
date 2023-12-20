@@ -21,15 +21,19 @@ import java.util.stream.Collectors;
 public abstract class BaseDocsTest {
     protected static FileSystem spoonFs;
     protected static FileSystem javaparseFs;
+    protected static FileSystem jbPsiFs;
     protected static Map<DocSystem, FileSystem> systems;
 
     @BeforeAll
     static void setupFs() throws IOException {
         spoonFs = open("spoonJar");
         javaparseFs = open("javaparserJar");
+        jbPsiFs = open("jbPsiJar");
+
         systems = new EnumMap<>(DocSystem.class);
         systems.put(DocSystem.SPOON, spoonFs);
         systems.put(DocSystem.JAVAPARSER, javaparseFs);
+        systems.put(DocSystem.JB_PSI, jbPsiFs);
     }
 
     private static FileSystem open(String propertyName) throws IOException {
@@ -145,6 +149,7 @@ public abstract class BaseDocsTest {
 
     public enum DocSystem {
         SPOON,
-        JAVAPARSER
+        JAVAPARSER,
+        JB_PSI
     }
 }

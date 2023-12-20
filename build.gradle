@@ -94,6 +94,10 @@ subprojects { proj ->
             }
             repositories {
                 maven gradleutils.publishingMaven
+                maven {
+                    name 'local'
+                    url file('build/repo')
+                }
             }
         }
     }

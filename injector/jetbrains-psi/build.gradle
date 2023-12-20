@@ -1,0 +1,22 @@
+repositories {
+    maven {
+        url 'https://www.jetbrains.com/intellij-repository/releases/'
+    }
+    maven {
+        url 'https://cache-redirector.jetbrains.com/intellij-dependencies/'
+    }
+}
+
+dependencies {
+    dependency 'com.jetbrains.intellij.java:java-psi-impl:233.11799.300'
+}
+
+components.java.withVariantsFromConfiguration(configurations.runtimeElements) {
+    skip()
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}

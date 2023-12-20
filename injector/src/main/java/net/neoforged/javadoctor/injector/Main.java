@@ -75,7 +75,7 @@ public class Main {
                 .iterator().next();
 
         final JavadocInjector injector = new JavadocInjector(
-                factory.createParser(options.valuesOf(classpathO), options.valueOf(javaVersion)),
+                factory.createParser(options.valuesOf(classpathO), options.valueOf(inputO), options.valueOf(javaVersion)),
                 new CombiningJavadocProvider(providers)
         );
 
@@ -90,6 +90,7 @@ public class Main {
                 if (next.getName().endsWith(".java")) {
                     final byte[] bytes = readAllBytes(input);
                     final Result<JavadocInjector.InjectionResult> result = injector.injectDocs(
+                            next.getName(),
                             next.getName().substring(0, next.getName().length() - 5).replace('/', '.'),
                             new String(bytes, StandardCharsets.UTF_8),
                             getMappings(next)

@@ -20,7 +20,7 @@ public class JavaparserParserFactory implements ClassParserFactory {
     }
 
     @Override
-    public JClassParser createParser(Collection<File> classpath, int javaVersion) throws IOException {
+    public JClassParser createParser(Collection<File> classpath, File input, int javaVersion) throws IOException {
         return new JavaparserClassParser(new JavaParser(new ParserConfiguration()
                 .setLanguageLevel(ParserConfiguration.LanguageLevel.valueOf("JAVA_" + javaVersion))
                 .setSymbolResolver(new SymbolResolverWithRecordSupport(

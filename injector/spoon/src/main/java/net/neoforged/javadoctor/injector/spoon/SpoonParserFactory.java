@@ -17,7 +17,7 @@ public class SpoonParserFactory implements ClassParserFactory {
     }
 
     @Override
-    public JClassParser createParser(Collection<File> classpath, int javaVersion) {
+    public JClassParser createParser(Collection<File> classpath, File input, int javaVersion) {
         return new SpoonClassParser(launcher(classpath, javaVersion));
     }
 

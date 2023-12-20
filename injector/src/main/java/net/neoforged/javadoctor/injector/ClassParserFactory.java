@@ -8,5 +8,5 @@ import java.util.Collection;
 
 public interface ClassParserFactory {
     String getName();
-    JClassParser createParser(Collection<File> classpath, int javaVersion) throws IOException;
+    JClassParser createParser(Collection<File> classpath, File input, int javaVersion) throws IOException;
 }

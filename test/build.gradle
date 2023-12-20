@@ -27,6 +27,13 @@ repositories {
             includeGroup('net.neoforged')
         }
     }
+
+    maven {
+        url 'https://www.jetbrains.com/intellij-repository/releases/'
+    }
+    maven {
+        url 'https://cache-redirector.jetbrains.com/intellij-dependencies/'
+    }
 }
 
 configurations {
@@ -81,12 +88,15 @@ rootProject.subprojects.each { proj ->
 }
 
 test {
+    outputs.upToDateWhen { false }
     useJUnitPlatform()
     dependsOn('applyDocsSpoon')
     dependsOn('applyDocsJavaparser')
+    dependsOn('applyDocsJetbrains-psi')
 
     jvmArgs('-DspoonJar=' + project.file("${project.buildDir}/applyDocsSpoon/output.jar"))
     jvmArgs('-DjavaparserJar=' + project.file("${project.buildDir}/applyDocsJavaparser/output.jar"))
+    jvmArgs('-DjbPsiJar=' + project.file("${project.buildDir}/applyDocsJetbrains-psi/output.jar"))
 }
 
 abstract class DecompileTask extends DefaultTask {
